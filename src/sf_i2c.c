@@ -157,9 +157,9 @@ void i2c_stop(const i2c_dev *dev)
  */
 static void i2c_ack(const i2c_dev *dev)
 {
+    I2C_PIN_SCL_LOW(dev);
     I2C_PIN_SDA_DIR_OUTPUT(dev);
     I2C_PIN_SDA_LOW(dev);
-    I2C_PIN_SCL_LOW(dev);
     i2c_delay(dev);
     I2C_PIN_SCL_HIGH(dev);
     i2c_delay(dev);
@@ -173,9 +173,9 @@ static void i2c_ack(const i2c_dev *dev)
  */
 static void i2c_nack(const i2c_dev *dev)
 {
+    I2C_PIN_SCL_LOW(dev);
     I2C_PIN_SDA_DIR_OUTPUT(dev);
     I2C_PIN_SDA_LOW(dev);
-    I2C_PIN_SCL_LOW(dev);
     i2c_delay(dev);
     I2C_PIN_SDA_HIGH(dev);
     i2c_delay(dev);
@@ -313,6 +313,67 @@ void i2c_read_data(const i2c_dev *dev, uint8_t slave_addr,
     i2c_start(dev);
     i2c_write_byte(dev, I2C_WRITE(slave_addr));
     i2c_write_byte(dev, reg_addr);
+    i2c_start(dev);
+    i2c_write_byte(dev, I2C_READ(slave_addr));
+
+    for (i = 0; i < length; i++) {
+        if (i != (length - 1)) {
+            p[i] = i2c_read_byte(dev, 1);
+        } else {
+            p[i] = i2c_read_byte(dev, 0);
+        }
+    }
+    i2c_stop(dev);
+}
+
+/**
+ * @brief  Write a register data to the I2C bus
+ * @param  dev Pointer : to iic structure
+ * @param  slave_addr  : Device address
+ * @param  reg_addr    : Register address
+ * @param  pbuf        : Pointer to source buffer
+ * @param  length      : The number of bytes that need to be write
+ * @return IIC_SUCCESS : Not error
+ *         IIC_TIMEOUT : Timeout,Device response is not received
+ */
+I2C_Error_t i2c_write_data16(const i2c_dev *dev, uint8_t slave_addr, 
+                                uint16_t reg_addr,   void *pbuf, uint16_t length)
+{
+    uint8_t i;
+    I2C_Error_t err;
+    uint8_t *p = (uint8_t*)pbuf;
+
+    i2c_start(dev);
+    i2c_write_byte(dev, I2C_WRITE(slave_addr));
+    i2c_write_byte(dev, (uint8_t)(reg_addr >> 8));
+    i2c_write_byte(dev, (uint8_t)reg_addr);
+
+    for (i = 0; i < length; i++) {
+        err = i2c_write_byte(dev, p[i]);
+    }
+    i2c_stop(dev);
+    return err;
+}
+
+/**
+ * @brief  Read a register data from the I2C bus
+ * @param  dev          : Pointer to iic structure
+ * @param  slave_addr   : Device address
+ * @param  reg_addr     : Register address
+ * @param  pbuf         : Pointer to target buffer
+ * @param  length       : The number of bytes that need to be read
+ * @return none
+ */
+void i2c_read_data16(const i2c_dev *dev, uint8_t slave_addr, 
+                        uint16_t reg_addr,   void *pbuf, uint16_t length)
+{
+    uint8_t i;
+    uint8_t *p = (uint8_t*)pbuf;
+
+    i2c_start(dev);
+    i2c_write_byte(dev, I2C_WRITE(slave_addr));
+    i2c_write_byte(dev, (uint8_t)(reg_addr >> 8));
+    i2c_write_byte(dev, (uint8_t)reg_addr);
     i2c_start(dev);
     i2c_write_byte(dev, I2C_READ(slave_addr));
 

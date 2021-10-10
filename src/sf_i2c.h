@@ -75,12 +75,16 @@ i2c_dev*    i2c_obj_find(const char* dev_name);
 I2C_Error_t i2c_write_byte(const i2c_dev *dev, uint8_t byte);
 uint8_t     i2c_read_byte(const i2c_dev *dev, uint8_t ack);
 I2C_Error_t i2c_write_data(const i2c_dev *dev, uint8_t slave_addr, 
-                                uint8_t reg_addr, void *pbuf, uint16_t length);
+                          uint8_t reg_addr, void *pbuf, uint16_t length);
 void        i2c_read_data(const i2c_dev *dev, uint8_t slave_addr, 
-                               uint8_t reg_addr, void *pbuf, uint16_t length);
+                          uint8_t reg_addr, void *pbuf, uint16_t length);
+I2C_Error_t i2c_write_data16(const i2c_dev *dev, uint8_t slave_addr, 
+                             uint16_t reg_addr,   void *pbuf, uint16_t length);
+void        i2c_read_data16(const i2c_dev *dev, uint8_t slave_addr, 
+                            uint16_t reg_addr,   void *pbuf, uint16_t length);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /* __SOFT_I2C_H */
+#endif /* __SF_I2C_H */
