@@ -13,9 +13,9 @@
 
 #include <string.h>
 
-/*******************************************************************************
- * i2c physical interface
- ******************************************************************************/
+//-----------------------------------------------------------------------------
+// i2c physical interface
+//-----------------------------------------------------------------------------
 // SDA pin output low level
 #define I2C_PIN_SDA_LOW(p_dev) \
                         p_dev->port.sda_pin_out_low()
@@ -46,9 +46,9 @@
 
 
 
-/*******************************************************************************
- * linked list function
- ******************************************************************************/
+//-----------------------------------------------------------------------------
+// linked list function
+//-----------------------------------------------------------------------------
 // Insert node into linked list
 #define INSERT_INTO(node) do {                          \
                               node->next = head_handle; \
@@ -76,7 +76,7 @@ static i2c_dev* head_handle = NULL;
  */
 static void i2c_delay(const i2c_dev *dev)
 {
-    __IO uint32_t i = dev->speed;
+    volatile uint32_t i = dev->speed;
 
     while (i--);
 }
@@ -187,10 +187,10 @@ static void i2c_nack(const i2c_dev *dev)
 /**
  * @brief  Detection response signal
  * @param  dev         : Pointer to iic structure
- * @return I2C_SUCCESS : Not error
+ * @return SF_I2C_SUCCESS : Not error
  *         IIC_TIMEOUT : Timeout,Device response is not received
  */
-static I2C_Error_t i2c_wait_ack(const i2c_dev *dev)
+static sf_i2c_err i2c_wait_ack(const i2c_dev *dev)
 {
     uint16_t wait_time = 255;
 
@@ -203,14 +203,14 @@ static I2C_Error_t i2c_wait_ack(const i2c_dev *dev)
             I2C_PIN_SDA_HIGH(dev);
             I2C_PIN_SDA_DIR_OUTPUT(dev);
             i2c_stop(dev);
-            return I2C_TIMEOUT;
+            return SF_I2C_TIMEOUT;
         }
     }
     i2c_delay(dev);
     I2C_PIN_SCL_LOW(dev);
     I2C_PIN_SDA_HIGH(dev);
     I2C_PIN_SDA_DIR_OUTPUT(dev);
-    return I2C_SUCCESS;
+    return SF_I2C_SUCCESS;
 }
 
 /**
@@ -218,12 +218,12 @@ static I2C_Error_t i2c_wait_ack(const i2c_dev *dev)
  * @param  dev         : Pointer to iic structure
  * @param  byte        : Data write to the iic bus
  * @return IIC_SUCCESS : Not error
- *         I2C_TIMEOUT : Timeout,Device response is not received
+ *         SF_I2C_TIMEOUT : Timeout,Device response is not received
  */
-I2C_Error_t i2c_write_byte(const i2c_dev *dev, uint8_t byte)
+sf_i2c_err i2c_write_byte(const i2c_dev *dev, uint8_t byte)
 {
     uint8_t i;
-    I2C_Error_t err;
+    sf_i2c_err err;
 
     for (i = 0; i < 8; i++) {
         I2C_PIN_SCL_LOW(dev);
@@ -268,7 +268,7 @@ uint8_t i2c_read_byte(const i2c_dev *dev, uint8_t ack)
 }
 
 /**
- * @brief  Write a register data to the I2C bus
+ * @brief  i2c writes multiple bytes to a register consecutively
  * @param  dev Pointer : to iic structure
  * @param  slave_addr  : Device address
  * @param  reg_addr    : Register address
@@ -277,11 +277,11 @@ uint8_t i2c_read_byte(const i2c_dev *dev, uint8_t ack)
  * @return IIC_SUCCESS : Not error
  *         IIC_TIMEOUT : Timeout,Device response is not received
  */
-I2C_Error_t i2c_write_data(const i2c_dev *dev, uint8_t slave_addr, 
-                                uint8_t reg_addr,   void *pbuf, uint16_t length)
+sf_i2c_err i2c_write_multi_byte(const i2c_dev *dev, uint8_t slave_addr, 
+                                 uint8_t reg_addr, void *pbuf, uint16_t length)
 {
     uint8_t i;
-    I2C_Error_t err;
+    sf_i2c_err err;
     uint8_t *p = (uint8_t*)pbuf;
 
     i2c_start(dev);
@@ -296,7 +296,7 @@ I2C_Error_t i2c_write_data(const i2c_dev *dev, uint8_t slave_addr,
 }
 
 /**
- * @brief  Read a register data from the I2C bus
+ * @brief  i2c reads multiple bytes consecutively from a register
  * @param  dev          : Pointer to iic structure
  * @param  slave_addr   : Device address
  * @param  reg_addr     : Register address
@@ -304,8 +304,8 @@ I2C_Error_t i2c_write_data(const i2c_dev *dev, uint8_t slave_addr,
  * @param  length       : The number of bytes that need to be read
  * @return none
  */
-void i2c_read_data(const i2c_dev *dev, uint8_t slave_addr, 
-                        uint8_t reg_addr,   void *pbuf, uint16_t length)
+void i2c_read_multi_byte(const i2c_dev *dev, uint8_t slave_addr, 
+                         uint8_t reg_addr, void *pbuf, uint16_t length)
 {
     uint8_t i;
     uint8_t *p = (uint8_t*)pbuf;
@@ -327,7 +327,7 @@ void i2c_read_data(const i2c_dev *dev, uint8_t slave_addr,
 }
 
 /**
- * @brief  Write a register data to the I2C bus
+ * @brief  i2c writes multiple bytes to a register consecutively
  * @param  dev Pointer : to iic structure
  * @param  slave_addr  : Device address
  * @param  reg_addr    : Register address
@@ -336,11 +336,11 @@ void i2c_read_data(const i2c_dev *dev, uint8_t slave_addr,
  * @return IIC_SUCCESS : Not error
  *         IIC_TIMEOUT : Timeout,Device response is not received
  */
-I2C_Error_t i2c_write_data16(const i2c_dev *dev, uint8_t slave_addr, 
-                                uint16_t reg_addr,   void *pbuf, uint16_t length)
+sf_i2c_err i2c_write_multi_byte_16bit(const i2c_dev *dev, uint8_t slave_addr, 
+                                      uint16_t reg_addr, void *pbuf, uint16_t length)
 {
     uint8_t i;
-    I2C_Error_t err;
+    sf_i2c_err err;
     uint8_t *p = (uint8_t*)pbuf;
 
     i2c_start(dev);
@@ -356,7 +356,7 @@ I2C_Error_t i2c_write_data16(const i2c_dev *dev, uint8_t slave_addr,
 }
 
 /**
- * @brief  Read a register data from the I2C bus
+ * @brief  i2c reads multiple bytes consecutively from a register
  * @param  dev          : Pointer to iic structure
  * @param  slave_addr   : Device address
  * @param  reg_addr     : Register address
@@ -364,8 +364,8 @@ I2C_Error_t i2c_write_data16(const i2c_dev *dev, uint8_t slave_addr,
  * @param  length       : The number of bytes that need to be read
  * @return none
  */
-void i2c_read_data16(const i2c_dev *dev, uint8_t slave_addr, 
-                        uint16_t reg_addr,   void *pbuf, uint16_t length)
+void i2c_read_multi_byte_16bit(const i2c_dev *dev, uint8_t slave_addr, 
+                               uint16_t reg_addr, void *pbuf, uint16_t length)
 {
     uint8_t i;
     uint8_t *p = (uint8_t*)pbuf;

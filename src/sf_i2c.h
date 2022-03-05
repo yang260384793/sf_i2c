@@ -34,9 +34,9 @@ extern "C" {
  */ 
 typedef enum
 {
-    I2C_SUCCESS = 0, /*! Not error   */
-    I2C_TIMEOUT,     /*! ack timeout */
-} I2C_Error_t;
+    SF_I2C_SUCCESS = 0, /*! Not error   */
+    SF_I2C_TIMEOUT,     /*! ack timeout */
+} sf_i2c_err;
 
 /**
  * IIC gpio optinos api
@@ -72,16 +72,16 @@ void        i2c_stop(const i2c_dev *dev);
 #if (I2C_OBJ_FIND > 0u)
 i2c_dev*    i2c_obj_find(const char* dev_name);
 #endif
-I2C_Error_t i2c_write_byte(const i2c_dev *dev, uint8_t byte);
+sf_i2c_err  i2c_write_byte(const i2c_dev *dev, uint8_t byte);
 uint8_t     i2c_read_byte(const i2c_dev *dev, uint8_t ack);
-I2C_Error_t i2c_write_data(const i2c_dev *dev, uint8_t slave_addr, 
-                          uint8_t reg_addr, void *pbuf, uint16_t length);
-void        i2c_read_data(const i2c_dev *dev, uint8_t slave_addr, 
-                          uint8_t reg_addr, void *pbuf, uint16_t length);
-I2C_Error_t i2c_write_data16(const i2c_dev *dev, uint8_t slave_addr, 
-                             uint16_t reg_addr,   void *pbuf, uint16_t length);
-void        i2c_read_data16(const i2c_dev *dev, uint8_t slave_addr, 
-                            uint16_t reg_addr,   void *pbuf, uint16_t length);
+sf_i2c_err  i2c_write_multi_byte(const i2c_dev *dev, uint8_t slave_addr, 
+                                 uint8_t reg_addr, void *pbuf, uint16_t length);
+void        i2c_read_multi_byte(const i2c_dev *dev, uint8_t slave_addr, 
+                                uint8_t reg_addr, void *pbuf, uint16_t length);
+sf_i2c_err  i2c_write_multi_byte_16bit(const i2c_dev *dev, uint8_t slave_addr, 
+                                       uint16_t reg_addr, void *pbuf, uint16_t length);
+void        i2c_read_multi_byte_16bit(const i2c_dev *dev, uint8_t slave_addr, 
+                                      uint16_t reg_addr, void *pbuf, uint16_t length);
 
 #ifdef __cplusplus
 } /* extern "C" */
