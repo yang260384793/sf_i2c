@@ -128,9 +128,9 @@ void i2c_start(const i2c_dev *dev)
 {
     I2C_PIN_SCL_HIGH(dev);
     I2C_PIN_SDA_HIGH(dev);
-    I2C_DELAY(2);
+    i2c_delay(dev);
     I2C_PIN_SDA_LOW(dev);
-    I2C_DELAY(2);
+    i2c_delay(dev);
     I2C_PIN_SCL_LOW(dev);
 }
 
@@ -143,11 +143,11 @@ void i2c_stop(const i2c_dev *dev)
 {
     I2C_PIN_SCL_LOW(dev);
     I2C_PIN_SDA_LOW(dev);
-    I2C_DELAY(2);
+    i2c_delay(dev);
     I2C_PIN_SCL_HIGH(dev);
-    I2C_DELAY(2);
+    i2c_delay(dev);
     I2C_PIN_SDA_HIGH(dev);
-    I2C_DELAY(2);
+    i2c_delay(dev);
 }
 
 /**

@@ -17,13 +17,9 @@ extern "C" {
 #endif
 
 /* Include -------------------------------------------------------------------*/
-#include "delay.h"
-
 #include <stdint.h>
 
 /* Public define -------------------------------------------------------------*/
-#define I2C_DELAY(x)                delay_us(x)
-
 #define I2C_WRITE(slave)            (slave & 0xFE) /*! I2C write operation    */
 #define I2C_READ(slave)             (slave | 0x01) /*! I2C read operation     */
 
