@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    bsp_i2c.c 
   * @author  Xiao Yang 260384793@qq.com
-  * @version V1.0.0
-  * @date    2021-10-06
+  * @version V2.0.0
+  * @date    2023-05-25
   * @brief   
   ******************************************************************************
   */
@@ -13,66 +13,82 @@
 #include "sf_i2c.h"
 
 /* Private function ----------------------------------------------------------*/
-__STATIC_INLINE void i2c0_sda_pin_out_low(void);
-__STATIC_INLINE void i2c0_sda_pin_out_high(void);
-__STATIC_INLINE void i2c0_scl_pin_out_low(void);
-__STATIC_INLINE void i2c0_scl_pin_out_high(void);
-__STATIC_INLINE uint8_t i2c0_sda_pin_read_level(void);
-__STATIC_INLINE void i2c0_sda_pin_dir_input(void);
-__STATIC_INLINE void i2c0_sda_pin_dir_output(void);
+static void i2c0_sda_pin_low(void);
+static void i2c0_sda_pin_high(void);
+static void i2c0_scl_pin_low(void);
+static void i2c0_scl_pin_high(void);
+static uint8_t i2c0_sda_pin_read(void);
+static void i2c0_sda_pin_dir_input(void);
+static void i2c0_sda_pin_dir_output(void);
+
+
+/**
+ * @brief  i2c software delay function, used to control the i2c bus speed
+ * @param  dev : Pointer to iic structure
+ * @return none
+ */
+static void i2c_delay(const uint32_t us)
+{
+    __IO uint32_t i = us;
+
+    while(i--);
+}
+
+
 
 /* Private variables ---------------------------------------------------------*/
-// 定义iic1驱动对象
-static i2c_dev i2c0_dev = {
-    .name                    = I2C0_NAME,
-    .speed                   = 40, /*! speed:120Hz */
-    .port.sda_pin_out_low    = i2c0_sda_pin_out_low,
-    .port.sda_pin_out_high   = i2c0_sda_pin_out_high,
-    .port.scl_pin_out_low    = i2c0_scl_pin_out_low,
-    .port.scl_pin_out_high   = i2c0_scl_pin_out_high,
-    .port.sda_pin_read_level = i2c0_sda_pin_read_level,
-    .port.sda_pin_dir_input  = i2c0_sda_pin_dir_input,
-    .port.sda_pin_dir_output = i2c0_sda_pin_dir_output,
+// 定义i2c驱动对象
+static struct sf_i2c_dev i2c0_dev = {
+    .name               = "i2c0",
+    .speed              = 2, /*! speed:105Hz */
+    .delay_us           = i2c_delay,
+    .ops.sda_low        = i2c0_sda_pin_low,
+    .ops.sda_high       = i2c0_sda_pin_high,
+    .ops.scl_low        = i2c0_scl_pin_low,
+    .ops.scl_high       = i2c0_scl_pin_high,
+    .ops.sda_read_level = i2c0_sda_pin_read,
+    .ops.sda_set_input  = i2c0_sda_pin_dir_input,
+    .ops.sda_set_output = i2c0_sda_pin_dir_output,
 };
 
 /*! Set i2c sda pin low level */
-__STATIC_INLINE void i2c0_sda_pin_out_low(void)
+static void i2c0_sda_pin_low(void)
 {
     GPIO_ResetBits(I2C0_PORT, I2C0_SDA_PIN);
 }
 
 /*! Set i2c sda pin high level */
-__STATIC_INLINE void i2c0_sda_pin_out_high(void)
+static void i2c0_sda_pin_high(void)
 {
     GPIO_SetBits(I2C0_PORT, I2C0_SDA_PIN);
 }
 
 /*! Set i2c scl pin low level */
-__STATIC_INLINE void i2c0_scl_pin_out_low(void)
+static void i2c0_scl_pin_low(void)
 {
     GPIO_ResetBits(I2C0_PORT, I2C0_SCL_PIN);
 }
 
 /*! Set i2c scl pin high level */
-__STATIC_INLINE void i2c0_scl_pin_out_high(void)
+static void i2c0_scl_pin_high(void)
 {
     GPIO_SetBits(I2C0_PORT, I2C0_SCL_PIN);
 }
 
 /*! Read i2c sda pin level */
-__STATIC_INLINE uint8_t i2c0_sda_pin_read_level(void)
+static uint8_t i2c0_sda_pin_read(void)
 {
     return GPIO_ReadInputDataBit(I2C0_PORT, I2C0_SDA_PIN);
 }
 
 /*! Switch i2c sda pin dir input */
-__STATIC_INLINE void i2c0_sda_pin_dir_input(void)
+static void i2c0_sda_pin_dir_input(void)
 {
     I2C0_PORT->MODER &=0XFFFFFFFC;
 }
 
 /*! Switch i2c sda pin dir output */
-__STATIC_INLINE void i2c0_sda_pin_dir_output(void)
+static void i2c0_sda_pin_dir_output(void)
 {
     I2C0_PORT->MODER &=0XFFFFFFFC;
     I2C0_PORT->MODER |= 0x01;
@@ -83,7 +99,7 @@ __STATIC_INLINE void i2c0_sda_pin_dir_output(void)
  * @param  none
  * @return none
  */
-static void i2c0_phy_init(void)
+static void i2c0_port_init(void)
 {
     // Config pin output direction
     GPIO_InitTypeDef GPIO_InitStruct;
@@ -113,7 +129,7 @@ static void i2c0_phy_init(void)
 void bsp_i2c_init(void)
 {
     /*! i2c physical layer initialization */
-    i2c0_phy_init();
+    i2c0_port_init();
 
     /*! i2c software layer initialization */
     i2c_init(&i2c0_dev);
